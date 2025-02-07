@@ -57,10 +57,59 @@ void UpdateSocket::sendFile(QString path)
     // waitForBytesWritten();
 }
 
-void UpdateSocket::sendMSG(QString msg, qint64 cmd)
+void UpdateSocket::sendFileList(QStringList list)
 {
+    data.bytesWritten = 0;
+    data.fileName = "";
+    data.localFile = nullptr;
+    data.totalBytes = 0;
 
+    QDataStream sendOut(&data.dataBlock,QIODevice::WriteOnly);
+
+    sendOut.setVersion(QDataStream::Qt_5_0);
+
+    sendOut << qint64(0) << qint64(0) << qint64(0)<< list;
+    data.totalBytes += data.dataBlock.size();
+
+    sendOut.device()->seek(0);
+
+    sendOut << data.totalBytes<<_TRANSFER_LIST_
+            <<qint64((data.dataBlock.size()-(sizeof(qint64)*3)));
+
+    qint64 sum = write(data.dataBlock);
+    waitForBytesWritten(2000);
+    data.bytesToWrite = data.totalBytes - sum;
+
+
+    // if(data.bytesToWrite>0)
+    // {
+    //     data.dataBlock = data.localFile->readAll();
+    //     write(data.dataBlock);
+    //     data.dataBlock.resize(0);
+    // }
 }
+
+// void UpdateSocket::sendMSG(QString msg, qint64 cmd)
+// {
+//     if(!isValid())
+//     {
+//         qDebug()<<"Already disconnected!";
+//         return;
+//     }
+//     transferData.totalBytes = 0;
+//     QDataStream outPut(&transferData.inOrOutBlock,QIODevice::WriteOnly);
+//     outPut.setVersion(QDataStream::Qt_5_0);
+//     transferData.totalBytes = msg.toUtf8().size();
+
+//     outPut<<qint64(0)<<qint64(cmd)<<msg;
+
+//     transferData.totalBytes += transferData.inOrOutBlock.size();
+//     outPut.device()->seek(0);
+//     outPut<<transferData.totalBytes;
+//     write(transferData.inOrOutBlock);
+
+//     transferData.inOrOutBlock.resize(0);
+// }
 
 void UpdateSocket::clear()
 {
@@ -80,7 +129,7 @@ void UpdateSocket::receiveData()
     int downflag = 0  ,  synfilelistflag = 0,   transferfileflag = 0;
     qint32 temp;
 
-    if(bytesAvailable()<=0) {
+    if(bytesAvailable() <= 0) {
         return;
     }
 
@@ -100,48 +149,52 @@ void UpdateSocket::receiveData()
             data.bytesReceived += data.fileNameSize;
         }
     }
+
     switch(data.command)
     {
-    case _TRANSFER_FILE_ :
-    {
-        transferfileflag = 1;
-        if(data.fileNameSize != 0)
+        case _TRANSFER_FILE_ :
         {
-            QString tempfilename("./ReceiveFile/");
-            tempfilename += data.fileName;
-            data.localFile = new QFile(tempfilename);
-            if(!data.localFile->open(QFile::WriteOnly)) {
-                qDebug()<<"open local file error!";
-                return;
+            transferfileflag = 1;
+            if(data.fileNameSize != 0)
+            {
+                QString tempfilename("./ReceiveFile/");
+                tempfilename += data.fileName;
+                data.localFile = new QFile(tempfilename);
+                if(!data.localFile->open(QFile::WriteOnly)) {
+                    qDebug()<<"open local file error!";
+                    return;
+                }
             }
         }
-    }
-    break;
-    case _TRANSFER_LIST_ :
-    {
-        // synfilelistflag = 1;
-        // clear();
-        // sendFile("./FileList/FILELIST.TXT");
-    }
-    break;
-    case _DOWNLOAD_FILE_ :
-    {
-        // downflag = 1;
-        // QString downloadFilePath;
-        // clear();
-        // downloadFilePath = this->findDownloadFile("./ServerFile/",data.fileName);
-        // sendFile(downloadFilePath);
-    }
-    break;
-    case _TRANSFER_ACK_ :
-    {
-        // qDebug()<<"Send file success!";
-    }
-    break;
-    default:
-        qDebug()<<"Receive command nulity!";
         break;
+        case _TRANSFER_LIST_ :
+        {
+            synfilelistflag = 1;
+            clear();
+
+
+            // sendFile("./FileList/FILELIST.TXT");
+        }
+        break;
+        case _DOWNLOAD_FILE_ :
+        {
+            // downflag = 1;
+            // QString downloadFilePath;
+            // clear();
+            // downloadFilePath = this->findDownloadFile("./ServerFile/",data.fileName);
+            // sendFile(downloadFilePath);
+        }
+        break;
+        case _TRANSFER_ACK_ :
+        {
+            // qDebug()<<"Send file success!";
+        }
+        break;
+        default:
+            qDebug()<<"Receive command nulity!";
+            break;
     }
+
     if(data.bytesReceived < data.totalBytes)
     {
         data.bytesReceived += bytesAvailable();
@@ -149,6 +202,7 @@ void UpdateSocket::receiveData()
         data.localFile->write(data.dataBlock);
         data.dataBlock.resize(0);
     }
+
     if(data.bytesReceived == data.totalBytes)
     {
         clear();
@@ -169,9 +223,11 @@ void UpdateSocket::receiveData()
             qDebug()<<"Download file success!";
         }
     }
+
 }
 
 void UpdateSocket::clientDisconnectSlot()
 {
 
 }
+

@@ -9,6 +9,16 @@ UpdateServer::~UpdateServer()
 
 }
 
+void UpdateServer::setDirectory(const QString &dir)
+{
+    m_dir = dir;
+    QDir directory(m_dir);
+    updateFiles.clear();
+
+    updateFiles = directory.entryList(QDir::Files | QDir::NoDotAndDotDot | QDir::Readable, QDir::Time);
+
+}
+
 void UpdateServer::incomingConnection(qintptr socketDescriptor)
 {
 
@@ -26,6 +36,7 @@ void UpdateServer::incomingConnection(qintptr socketDescriptor)
     // connect(widget,&Widget::getFileListSignal,thread,&UpdateThread::getFileListSlot);
     // connect(widget,&Widget::sendFileSignal,thread,&UpdateThread::sendFileSlot);
     // connect(widget,&Widget::clientDiconnectSignal,this,&Myserver::clientDisconnectSlot);
+    thread->setFileList(updateFiles);
     thread->start();
 }
 

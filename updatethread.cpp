@@ -21,6 +21,7 @@ void UpdateThread::run()
 
     QObject::connect(socket,&UpdateSocket::disconnected,this,&UpdateThread::closeClientConnectSlot);
     QObject::connect(this,&UpdateThread::sendFileSignal,socket,&UpdateSocket::sendFile);
+    // QObject::connect(this,&UpdateThread::sendFileListSignal,socket,&UpdateSocket::sendFileList);
     QObject::connect(this,&UpdateThread::clientDisconnectSignal,socket,&UpdateSocket::clientDisconnectSlot);
 
     // clientIP = socket->peerAddress().toString();
@@ -38,7 +39,8 @@ void UpdateThread::run()
      * Потом будет сначала обмен списком доступных файлов и запрос желаемого
      * */
     // socket->sendFile("/home/kikorik/Desktop/SmallFileForTest2.png");
-     socket->sendFile(FILE_TO_SEND);
+
+    socket->sendFileList(fileList);
 
     exec();
 }
@@ -61,4 +63,14 @@ void UpdateThread::getFileListSlot(QString filelist)
 void UpdateThread::sendFileSlot(QString filename)
 {
 
+}
+
+void UpdateThread::sendFileList()
+{
+
+}
+
+void UpdateThread::setFileList(const QStringList &newFileList)
+{
+    fileList = newFileList;
 }

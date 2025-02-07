@@ -14,16 +14,17 @@ public:
     ~UpdateSocket();
 
     void sendFile(QString path);
-    void sendMSG(QString msg,qint64 cmd);
+    void sendFileList(QStringList list);
+    // void sendMSG(QString msg,qint64 cmd);
     void clear();
     QString findDownloadFile(QString path,QString fileName);
+
 public slots:
     void receiveData();
     void clientDisconnectSlot();
 
 private:
     TransferData data;
-
     int socketID;
     int socketDescriptor;
 };
