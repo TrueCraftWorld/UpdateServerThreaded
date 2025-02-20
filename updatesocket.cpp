@@ -29,7 +29,7 @@ void UpdateSocket::sendFile(QString path)
 
     QDataStream sendOut(&data.dataBlock,QIODevice::WriteOnly);
 
-    sendOut.setVersion(QDataStream::Qt_5_0);
+    sendOut.setVersion(QDataStream::Qt_5_15);
 
     QString currentFilename = data.fileName.right(data.fileName.size()
                                                           -data.fileName.lastIndexOf('/')-1);
@@ -66,7 +66,7 @@ void UpdateSocket::sendFileList(QStringList list)
 
     QDataStream sendOut(&data.dataBlock,QIODevice::WriteOnly);
 
-    sendOut.setVersion(QDataStream::Qt_5_0);
+    sendOut.setVersion(QDataStream::Qt_5_15);
 
     sendOut << qint64(0) << qint64(0) << qint64(0)<< list.join('%');
     data.totalBytes += data.dataBlock.size();
@@ -88,28 +88,6 @@ void UpdateSocket::sendFileList(QStringList list)
     //     data.dataBlock.resize(0);
     // }
 }
-
-// void UpdateSocket::sendMSG(QString msg, qint64 cmd)
-// {
-//     if(!isValid())
-//     {
-//         qDebug()<<"Already disconnected!";
-//         return;
-//     }
-//     transferData.totalBytes = 0;
-//     QDataStream outPut(&transferData.inOrOutBlock,QIODevice::WriteOnly);
-//     outPut.setVersion(QDataStream::Qt_5_0);
-//     transferData.totalBytes = msg.toUtf8().size();
-
-//     outPut<<qint64(0)<<qint64(cmd)<<msg;
-
-//     transferData.totalBytes += transferData.inOrOutBlock.size();
-//     outPut.device()->seek(0);
-//     outPut<<transferData.totalBytes;
-//     write(transferData.inOrOutBlock);
-
-//     transferData.inOrOutBlock.resize(0);
-// }
 
 void UpdateSocket::clear()
 {
@@ -134,7 +112,7 @@ void UpdateSocket::receiveData()
     }
 
     QDataStream in(this);
-    in.setVersion(QDataStream::Qt_5_0);
+    in.setVersion(QDataStream::Qt_5_15);
 
     if(data.bytesReceived <= sizeof(qint64)*3) {
         if(bytesAvailable()>=sizeof(qint64)*3
