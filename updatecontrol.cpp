@@ -12,6 +12,7 @@ void UpdateControl::setDirectory(const QString &dir)
 {
     m_dir = dir;
     server.setDirectory(dir);
+    start();
 }
 
 void UpdateControl::start()

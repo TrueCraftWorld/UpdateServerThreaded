@@ -16,7 +16,9 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
 
-    QCommandLineOption workingDirectory(QStringList() << "d" << "directory", QCoreApplication::translate("Working directory", "set directory "));
+    QCommandLineOption workingDirectory(QStringList() << "d" << "directory",
+                                        QCoreApplication::translate("Working directory", "set directory "),
+                                        QCoreApplication::translate("main", "directory"));
     parser.addOption(workingDirectory);
     parser.process(app);
 
@@ -24,7 +26,7 @@ int main(int argc, char *argv[])
 
     QString dir = "";
     if (parser.isSet(workingDirectory)) {
-        dir = QString::fromStdString(parser.value(workingDirectory).toStdString());
+        dir = parser.value(workingDirectory);
         QDir directory = QDir(dir);
         if (directory.exists())
         {
