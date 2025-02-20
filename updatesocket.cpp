@@ -68,7 +68,7 @@ void UpdateSocket::sendFileList(QStringList list)
 
     sendOut.setVersion(QDataStream::Qt_5_0);
 
-    sendOut << qint64(0) << qint64(0) << qint64(0)<< list;
+    sendOut << qint64(0) << qint64(0) << qint64(0)<< list.join('%');
     data.totalBytes += data.dataBlock.size();
 
     sendOut.device()->seek(0);
