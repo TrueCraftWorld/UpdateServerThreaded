@@ -10,10 +10,10 @@ class UpdateSocket : public QTcpSocket
 {
     Q_OBJECT
 public:
-    explicit UpdateSocket(int socket,int ID,QObject *parent = nullptr);
+    explicit UpdateSocket(int ID,QObject *parent = nullptr);
     ~UpdateSocket();
 
-    void sendFile(QString path);
+    void sendFile(const QString &path);
     void sendFileList(QStringList list);
     // void sendMSG(QString msg,qint64 cmd);
     void clear();
@@ -23,14 +23,13 @@ signals:
 
 public slots:
     void receiveData();
-    void clientDisconnectSlot();
+    // void clientDisconnectSlot();
 
 private:
-    void clearNetworkData();
 
     TransferData data;
     int socketID;
-    int socketDescriptor;
+    // int socketDescriptor;
 };
 
 #endif // UPDATESOCKET_H

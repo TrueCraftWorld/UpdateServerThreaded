@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QThread>
+#include <QSharedPointer>
 
 #include "package.h"
 #include "updatesocket.h"
@@ -15,6 +16,9 @@ class UpdateThread : public QThread
 public:
     explicit UpdateThread(int socketDes,int ID,QObject *parent = nullptr);
     void setFileList(const QStringList &newFileList);
+
+    QString getDirectory() const;
+    void setDirectory(const QString &newDirectory);
 
 protected:
     virtual void run() override;
@@ -30,7 +34,7 @@ public slots:
     void sendFileSlot(QString filename);
     void sendFileList();
 private:
-    UpdateSocket *socket;
+    QSharedPointer<UpdateSocket> socket;
     int clientID;
     quintptr socketDescriptor;
 

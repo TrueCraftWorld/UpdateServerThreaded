@@ -12,7 +12,7 @@ UpdateThread::UpdateThread(int socketDes, int ID, QObject *parent)
 
 void UpdateThread::run()
 {
-    UpdateSocket *socket = new UpdateSocket(socketDescriptor,clientID,0);
+   socket.reset( new UpdateSocket(clientID,0));
 
     if(!socket->setSocketDescriptor(socketDescriptor))
         return;
@@ -20,7 +20,7 @@ void UpdateThread::run()
     // QObject::connect(socket,&UpdateSocket::disconnected,this,&UpdateThread::closeClientConnectSlot);
     // QObject::connect(this,&UpdateThread::sendFileSignal,socket,&UpdateSocket::sendFile);
     // QObject::connect(this,&UpdateThread::clientDisconnectSignal,socket,&UpdateSocket::clientDisconnectSlot);
-    connect(socket, &UpdateSocket::fileRequested, this, &UpdateThread::sendFileSlot);
+    connect(socket.data(), &UpdateSocket::fileRequested, this, &UpdateThread::sendFileSlot);
 
 
     /*
@@ -48,6 +48,8 @@ void UpdateThread::run()
 
 void UpdateThread::sendFileSlot(QString filename)
 {
+    if (socket.isNull())
+        return;
     if (fileList.contains(filename)) {
         socket->sendFile(directory + '/' + filename);
     }
@@ -56,6 +58,16 @@ void UpdateThread::sendFileSlot(QString filename)
 void UpdateThread::sendFileList()
 {
 
+}
+
+QString UpdateThread::getDirectory() const
+{
+    return directory;
+}
+
+void UpdateThread::setDirectory(const QString &newDirectory)
+{
+    directory = newDirectory;
 }
 
 void UpdateThread::setFileList(const QStringList &newFileList)

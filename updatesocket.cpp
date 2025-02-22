@@ -1,12 +1,12 @@
 #include "updatesocket.h"
 #include "protocolcommand.h"
 
-UpdateSocket::UpdateSocket(int socket,int ID,QObject *parent)
+UpdateSocket::UpdateSocket(int ID, QObject *parent)
     : QTcpSocket{parent}, socketID(ID)
 {
     data.payloadSize = 1024 * 64;//64k
     clear();
-    setSocketDescriptor(socket);
+    // setSocketDescriptor(socket);
     QObject::connect(this,&UpdateSocket::readyRead,this,&UpdateSocket::receiveData);
 }
 
@@ -15,7 +15,7 @@ UpdateSocket::~UpdateSocket()
 
 }
 
-void UpdateSocket::sendFile(QString path)
+void UpdateSocket::sendFile(const QString& path)
 {
     data.bytesWritten = 0;
     data.fileName = path;
@@ -210,28 +210,20 @@ void UpdateSocket::receiveData()
         {
             selectflag = 0;
             QString file = data.fileName;
-            clearNetworkData();
+            // clearNetworkData();
             clear();
             emit fileRequested(file);
 
         }
-        clearNetworkData();
+        // clearNetworkData();
         clear();
     }
 
 }
 
-void UpdateSocket::clientDisconnectSlot()
-{
+// void UpdateSocket::clientDisconnectSlot()
+// {
 
-}
+// }
 
-void UpdateSocket::clearNetworkData()
-{
-    data.totalBytes = 0;
-    data.bytesReceived = 0;
-    data.fileNameSize = 0;
-    data.dataBlock.resize(0);
-    // data.localFile = null
-}
 

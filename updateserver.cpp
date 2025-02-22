@@ -37,6 +37,7 @@ void UpdateServer::incomingConnection(qintptr socketDescriptor)
     // connect(widget,&Widget::sendFileSignal,thread,&UpdateThread::sendFileSlot);
     // connect(widget,&Widget::clientDiconnectSignal,this,&Myserver::clientDisconnectSlot);
     thread->setFileList(updateFiles);
+    thread->setDirectory(m_dir);
     thread->start();
 }
 
