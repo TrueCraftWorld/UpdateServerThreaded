@@ -24,9 +24,9 @@ signals:
     // void sendFileListSignal(QString filelist);
     void sendFileSignal(QString filename);
 public slots:
-    void closeClientConnectSlot();
-    void clientDisconnectSlot();
-    void getFileListSlot(QString filelist);
+    // void closeClientConnectSlot();
+    // void clientDisconnectSlot();
+    // void getFileListSlot(QString filelist);
     void sendFileSlot(QString filename);
     void sendFileList();
 private:

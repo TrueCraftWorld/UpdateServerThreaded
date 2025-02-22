@@ -17,7 +17,7 @@ void UpdateThread::run()
     if(!socket->setSocketDescriptor(socketDescriptor))
         return;
 
-    QObject::connect(socket,&UpdateSocket::disconnected,this,&UpdateThread::closeClientConnectSlot);
+    // QObject::connect(socket,&UpdateSocket::disconnected,this,&UpdateThread::closeClientConnectSlot);
     // QObject::connect(this,&UpdateThread::sendFileSignal,socket,&UpdateSocket::sendFile);
     // QObject::connect(this,&UpdateThread::clientDisconnectSignal,socket,&UpdateSocket::clientDisconnectSlot);
     connect(socket, &UpdateSocket::fileRequested, this, &UpdateThread::sendFileSlot);
@@ -35,15 +35,15 @@ void UpdateThread::run()
     exec();
 }
 
-void UpdateThread::closeClientConnectSlot()
-{
+// void UpdateThread::closeClientConnectSlot()
+// {
 
-}
+// }
 
-void UpdateThread::clientDisconnectSlot()
-{
+// void UpdateThread::clientDisconnectSlot()
+// {
 
-}
+// }
 
 
 void UpdateThread::sendFileSlot(QString filename)

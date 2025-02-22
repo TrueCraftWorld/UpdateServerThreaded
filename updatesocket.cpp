@@ -172,8 +172,9 @@ void UpdateSocket::receiveData()
         break;
         case _SELECT_FILE_:
         {
-
+            selectflag = 1;
         }
+        break;
         default:
             qDebug()<<"Receive command nulity!";
             break;
