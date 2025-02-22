@@ -17,13 +17,17 @@ public:
     void sendFileList(QStringList list);
     // void sendMSG(QString msg,qint64 cmd);
     void clear();
-    QString findDownloadFile(QString path,QString fileName);
+    // QString findDownloadFile(QString path, QString fileName);
+signals:
+    void fileRequested(const QString&);
 
 public slots:
     void receiveData();
     void clientDisconnectSlot();
 
 private:
+    void clearNetworkData();
+
     TransferData data;
     int socketID;
     int socketDescriptor;

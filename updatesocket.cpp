@@ -6,7 +6,7 @@ UpdateSocket::UpdateSocket(int socket,int ID,QObject *parent)
 {
     data.payloadSize = 1024 * 64;//64k
     clear();
-
+    setSocketDescriptor(socket);
     QObject::connect(this,&UpdateSocket::readyRead,this,&UpdateSocket::receiveData);
 }
 
@@ -22,7 +22,7 @@ void UpdateSocket::sendFile(QString path)
     data.localFile = new QFile(path);
     if(!data.localFile->open(QFile::ReadOnly))
     {
-        qDebug()<<tr("open file error!")<<endl;
+        // qDebug()<<tr("open file error!")<<Qt::endl;
         return;
     }
     data.totalBytes  = data.localFile->size();
@@ -97,14 +97,16 @@ void UpdateSocket::clear()
     data.dataBlock.resize(0);
 }
 
-QString UpdateSocket::findDownloadFile(QString path, QString fileName)
-{
+// QString UpdateSocket::findDownloadFile(QString path, QString fileName)
+// {
 
-}
+// }
 
 void UpdateSocket::receiveData()
 {
+    ///TODO - переделать эти дурачкие флаги в переменную состояния
     int downflag = 0  ,  synfilelistflag = 0,   transferfileflag = 0;
+    int selectflag = 0;
     qint32 temp;
 
     if(bytesAvailable() <= 0) {
@@ -168,6 +170,10 @@ void UpdateSocket::receiveData()
             // qDebug()<<"Send file success!";
         }
         break;
+        case _SELECT_FILE_:
+        {
+
+        }
         default:
             qDebug()<<"Receive command nulity!";
             break;
@@ -183,7 +189,6 @@ void UpdateSocket::receiveData()
 
     if(data.bytesReceived == data.totalBytes)
     {
-        clear();
         if(transferfileflag == 1)
         {
             transferfileflag = 0;
@@ -200,6 +205,17 @@ void UpdateSocket::receiveData()
             downflag = 0;
             qDebug()<<"Download file success!";
         }
+        else if (selectflag == 1)
+        {
+            selectflag = 0;
+            QString file = data.fileName;
+            clearNetworkData();
+            clear();
+            emit fileRequested(file);
+
+        }
+        clearNetworkData();
+        clear();
     }
 
 }
@@ -207,5 +223,14 @@ void UpdateSocket::receiveData()
 void UpdateSocket::clientDisconnectSlot()
 {
 
+}
+
+void UpdateSocket::clearNetworkData()
+{
+    data.totalBytes = 0;
+    data.bytesReceived = 0;
+    data.fileNameSize = 0;
+    data.dataBlock.resize(0);
+    // data.localFile = null
 }
 

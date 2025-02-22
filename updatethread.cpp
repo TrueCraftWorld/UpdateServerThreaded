@@ -12,26 +12,16 @@ UpdateThread::UpdateThread(int socketDes, int ID, QObject *parent)
 
 void UpdateThread::run()
 {
-    // QString clientIP;
-    // int clientState;
     UpdateSocket *socket = new UpdateSocket(socketDescriptor,clientID,0);
 
     if(!socket->setSocketDescriptor(socketDescriptor))
         return;
 
     QObject::connect(socket,&UpdateSocket::disconnected,this,&UpdateThread::closeClientConnectSlot);
-    QObject::connect(this,&UpdateThread::sendFileSignal,socket,&UpdateSocket::sendFile);
-    // QObject::connect(this,&UpdateThread::sendFileListSignal,socket,&UpdateSocket::sendFileList);
-    QObject::connect(this,&UpdateThread::clientDisconnectSignal,socket,&UpdateSocket::clientDisconnectSlot);
+    // QObject::connect(this,&UpdateThread::sendFileSignal,socket,&UpdateSocket::sendFile);
+    // QObject::connect(this,&UpdateThread::clientDisconnectSignal,socket,&UpdateSocket::clientDisconnectSlot);
+    connect(socket, &UpdateSocket::fileRequested, this, &UpdateThread::sendFileSlot);
 
-    // clientIP = socket->peerAddress().toString();
-    // clientState = socket->state();
-    // if(!clientIP.isEmpty()) {
-    //     clientIP = clientIP.right(clientIP.length()-7);
-    //     emit addClientIPToGUISignal(clientIP,clientID,clientState);
-    // } else {
-    //     qDebug()<< "Get client IP failed!";
-    // }
 
     /*
      * тут пока сделаем Маня-мирок - отдаём один конкретный файл каждому абоненту
@@ -55,14 +45,12 @@ void UpdateThread::clientDisconnectSlot()
 
 }
 
-void UpdateThread::getFileListSlot(QString filelist)
-{
-
-}
 
 void UpdateThread::sendFileSlot(QString filename)
 {
-
+    if (fileList.contains(filename)) {
+        socket->sendFile(directory + '/' + filename);
+    }
 }
 
 void UpdateThread::sendFileList()
