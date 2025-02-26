@@ -7,7 +7,12 @@ UpdateSocket::UpdateSocket(int ID, QObject *parent)
     data.payloadSize = 1024 * 64;//64k
     clear();
     // setSocketDescriptor(socket);
-    QObject::connect(this,&UpdateSocket::readyRead,this,&UpdateSocket::receiveData);
+    connect(this,&UpdateSocket::readyRead,this,&UpdateSocket::receiveData);
+    connect(this,&UpdateSocket::bytesWritten,this,&UpdateSocket::receiveData);
+    // connect(this, &UpdateSocket::bytesWritten, this, [this](int bytes){
+    //     qDebug() << bytes << '\n';
+
+    // });
 }
 
 UpdateSocket::~UpdateSocket()
@@ -44,7 +49,7 @@ void UpdateSocket::sendFile(const QString& path)
             <<qint64((data.dataBlock.size()-(sizeof(qint64)*3)));
 
     qint64 sum = write(data.dataBlock);
-    waitForBytesWritten(2000);
+    waitForBytesWritten();
     data.bytesToWrite = data.totalBytes - sum;
 
 
@@ -54,7 +59,7 @@ void UpdateSocket::sendFile(const QString& path)
         write(data.dataBlock);
         data.dataBlock.resize(0);
     }
-    // waitForBytesWritten();
+    waitForBytesWritten(120000);
 }
 
 void UpdateSocket::sendFileList(QStringList list)
@@ -77,16 +82,8 @@ void UpdateSocket::sendFileList(QStringList list)
             <<qint64((data.dataBlock.size()-(sizeof(qint64)*3)));
 
     qint64 sum = write(data.dataBlock);
-    waitForBytesWritten(2000);
+    waitForBytesWritten();
     data.bytesToWrite = data.totalBytes - sum;
-
-
-    // if(data.bytesToWrite>0)
-    // {
-    //     data.dataBlock = data.localFile->readAll();
-    //     write(data.dataBlock);
-    //     data.dataBlock.resize(0);
-    // }
 }
 
 void UpdateSocket::clear()
@@ -97,10 +94,6 @@ void UpdateSocket::clear()
     data.dataBlock.resize(0);
 }
 
-// QString UpdateSocket::findDownloadFile(QString path, QString fileName)
-// {
-
-// }
 
 void UpdateSocket::receiveData()
 {
@@ -116,7 +109,7 @@ void UpdateSocket::receiveData()
     QDataStream in(this);
     in.setVersion(QDataStream::Qt_5_15);
 
-    if(data.bytesReceived <= sizeof(qint64)*3) {
+    // if(data.bytesReceived <= sizeof(qint64)*3) {
         if(bytesAvailable()>=sizeof(qint64)*3
             &&(data.fileNameSize==0)) {
             in >> data.totalBytes >> data.command
@@ -128,23 +121,13 @@ void UpdateSocket::receiveData()
             in >> data.fileName;
             data.bytesReceived += data.fileNameSize;
         }
-    }
+    // }
 
     switch(data.command)
     {
         case _TRANSFER_FILE_ :
         {
-            transferfileflag = 1;
-            if(data.fileNameSize != 0)
-            {
-                QString tempfilename("./ReceiveFile/");
-                tempfilename += data.fileName;
-                data.localFile = new QFile(tempfilename);
-                if(!data.localFile->open(QFile::WriteOnly)) {
-                    qDebug()<<"open local file error!";
-                    return;
-                }
-            }
+
         }
         break;
         case _TRANSFER_LIST_ :
@@ -218,6 +201,11 @@ void UpdateSocket::receiveData()
         // clearNetworkData();
         clear();
     }
+
+}
+
+void UpdateSocket::sendData()
+{
 
 }
 

@@ -23,6 +23,7 @@ signals:
 
 public slots:
     void receiveData();
+    void sendData();
     // void clientDisconnectSlot();
 
 private:
