@@ -50,8 +50,8 @@ void UpdateSocket::sendFile(const QString& path)
     outStream << outputHeader.magic
               << outputHeader.command
               << outputHeader.messageSize
-              << outputHeader.fileSize
-              << qint64((outputHeader.dataBlock.size() - (sizeof(qint64) * 3)));
+              << outputHeader.fileSize;
+    // << qint64((outputHeader.dataBlock.size() - (sizeof(qint64) * 3)));
 
     connect(this, &UpdateSocket::bytesWritten, this, &UpdateSocket::sendFilePart);
     write(outputHeader.dataBlock.constData(), outputHeader.bytesToReadOrWrite);
@@ -85,8 +85,8 @@ void UpdateSocket::sendFileList(QStringList list)
     outStream << outputHeader.magic
               << outputHeader.command
               << outputHeader.messageSize
-              << outputHeader.fileSize
-              << qint64((outputHeader.dataBlock.size() - (sizeof(qint64) * 3)));
+              << outputHeader.fileSize;
+    // << qint64((outputHeader.dataBlock.size() - (sizeof(qint64) * 3)));
 
     write(outputHeader.dataBlock.constData(), outputHeader.bytesToReadOrWrite);
 }
@@ -153,12 +153,16 @@ void UpdateSocket::readMessage()
         && (inputHeader.command == 0)) {
 
         inStream >> inputHeader.magic
-                 >> inputHeader.command
-                 >> inputHeader.messageSize
-                 >> inputHeader.fileSize;
+            >> inputHeader.command
+            >> inputHeader.messageSize
+            >> inputHeader.fileSize;
 
         inputHeader.bytesReadOrWritten += sizeof(qint64)*4;
     }
+    inputHeader.bytesToReadOrWrite = inputHeader.messageSize
+                                     + inputHeader.fileSize
+                                     + 4 * sizeof(qint64);
+
     if(bytesAvailable() >= inputHeader.messageSize
         && inputHeader.message.isEmpty()) {
         inStream >> inputHeader.message;
@@ -169,29 +173,29 @@ void UpdateSocket::readMessage()
 
     switch(inputHeader.command)
     {
-        case _TRANSFER_FILE_ :
-        {
-            //тут нам теперь надо прочитать входящий файл
-            if (bytesAvailable())
-                inputHeader.dataBlock = readAll();
-            recieveFile(inputHeader.message);
-        }
+    case _TRANSFER_FILE_ :
+    {
+        //тут нам теперь надо прочитать входящий файл
+        if (bytesAvailable())
+            inputHeader.dataBlock = readAll();
+        recieveFile(inputHeader.message);
+    }
+    break;
+    case _TRANSFER_LIST_ :
+    {
+        listRecieved(inputHeader.message.split('%'));
+        clearInput();
+    }
+    break;
+    case _SELECT_FILE_:
+    {
+        fileRequested(inputHeader.message);
+        clearInput();
+    }
+    break;
+    default:
+        qDebug()<<"Receive command nulity!";
         break;
-        case _TRANSFER_LIST_ :
-        {
-            listRecieved(inputHeader.message.split('%'));
-            clearInput();
-        }
-        break;
-        case _SELECT_FILE_:
-        {
-            fileRequested(inputHeader.message);
-            clearInput();
-        }
-        break;
-        default:
-            qDebug()<<"Receive command nulity!";
-            break;
     }
 }
 
@@ -199,15 +203,17 @@ void UpdateSocket::readMessage()
 
 void UpdateSocket::recieveFile(const QString& fileName) {
 
-    QString savePath = "/usr/share/qtpr";
+    if (inputFile.localFile.isNull()) {
+        QString savePath = "/home/kikorik/garbage/";
 
-    QDir dir;
+        QDir dir;
 
-    dir.mkpath(savePath);
-
-    inputFile.localFile.reset( new QFile(savePath + fileName));
-
-    inputFile.bytesRecived = 0;
+        dir.mkpath(savePath);
+        inputFile.awaitedSize = inputHeader.fileSize;
+        inputFile.localFile.reset( new QFile(savePath + fileName));
+        inputFile.localFile->open(QIODevice::WriteOnly);
+        inputFile.bytesRecived = 0;
+    }
 
     recieveFile();
 
@@ -246,7 +252,8 @@ void UpdateSocket::recieveFile() {
         inputFile.bytesRecived = 0;
 
         inputFile.awaitedSize = 0;
-        clearInput();
+        emit fileRecieved(inputHeader.message);
+        // clearInput();
     }
 }
 
@@ -281,10 +288,3 @@ void UpdateSocket::clearInput()
     inputFile.awaitedSize = 0;
     inputFile.bytesRecived = 0;
 }
-
-// void UpdateSocket::clientDisconnectSlot()
-// {
-
-// }
-
-

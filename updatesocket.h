@@ -20,6 +20,7 @@ public:
 signals:
     void fileRequested(const QString&);
     void listRecieved(QStringList list);
+    void fileRecieved(const QString& path);
 
 private slots:
 
