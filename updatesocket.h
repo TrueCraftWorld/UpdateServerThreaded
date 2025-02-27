@@ -13,24 +13,32 @@ public:
     explicit UpdateSocket(int ID,QObject *parent = nullptr);
     ~UpdateSocket();
 
-    void sendFile(const QString &path);
     void sendFileList(QStringList list);
-    // void sendMSG(QString msg,qint64 cmd);
-    void clear();
-    // QString findDownloadFile(QString path, QString fileName);
+    void requestFile(const QString& name);
+    void sendFile(const QString &path);
+
 signals:
     void fileRequested(const QString&);
+    void listRecieved(QStringList list);
 
 private slots:
-    void receiveData();
-    void sendData(int written);
-    // void clientDisconnectSlot();
+
+    void recieveFile(const QString &fileName);
+
+    void sendFilePart();
+
+    void readMessage();
+    void recieveFile();
 
 private:
+    void clearOutput();
+    void clearInput();
 
-    TransferData data;
+    FileInfo inputFile;
+    FileInfo outputFile;
+    TransferHeader outputHeader;
+    TransferHeader inputHeader;
     int socketID;
-    // int socketDescriptor;
 };
 
 #endif // UPDATESOCKET_H

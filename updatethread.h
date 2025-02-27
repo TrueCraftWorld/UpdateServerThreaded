@@ -5,7 +5,7 @@
 #include <QThread>
 #include <QSharedPointer>
 
-#include "package.h"
+// #include "package.h"
 #include "updatesocket.h"
 
 
@@ -39,7 +39,7 @@ private:
     quintptr socketDescriptor;
 
 private:
-    TransferData data;
+    // TransferData data;
     QString directory;
     QStringList fileList;
 };
