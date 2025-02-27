@@ -26,3 +26,8 @@ HEADERS += \
     updateserver.h \
     updatesocket.h \
     updatethread.h
+
+
+# target.path = /usr/share/qtpr
+# INSTALLS += target
+

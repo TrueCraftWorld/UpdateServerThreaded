@@ -21,8 +21,9 @@ public:
 signals:
     void fileRequested(const QString&);
 
-public slots:
+private slots:
     void receiveData();
+    void sendData(int written);
     // void clientDisconnectSlot();
 
 private:
