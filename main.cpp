@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
+#include <QDir>
 
 #include "updatecontrol.h"
 

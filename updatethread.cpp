@@ -1,6 +1,7 @@
 #include "updatethread.h"
-#include "config.h"
+#include "package.h"
 
+#include <QDir>
 
 
 UpdateThread::UpdateThread(int socketDes, int ID, QObject *parent)
@@ -21,16 +22,7 @@ void UpdateThread::run()
     // QObject::connect(this,&UpdateThread::sendFileSignal,socket,&UpdateSocket::sendFile);
     // QObject::connect(this,&UpdateThread::clientDisconnectSignal,socket,&UpdateSocket::clientDisconnectSlot);
     connect(socket.data(), &UpdateSocket::fileRequested, this, &UpdateThread::sendFileSlot);
-
-
-    /*
-     * тут пока сделаем Маня-мирок - отдаём один конкретный файл каждому абоненту
-     *
-     * Потом будет сначала обмен списком доступных файлов и запрос желаемого
-     * */
-    // socket->sendFile("/home/kikorik/Desktop/SmallFileForTest2.png");
-
-    socket->sendFileList(fileList);
+    connect(socket.data(), &UpdateSocket::listRequested, this, &UpdateThread::sendFileList);
 
     exec();
 }
@@ -55,9 +47,38 @@ void UpdateThread::sendFileSlot(QString filename)
     }
 }
 
-void UpdateThread::sendFileList()
+void UpdateThread::sendFileList( int fileType)
 {
+    // QString dir = directory;
+    QStringList fileList;
+    QDir dir;
+    switch (fileType) {
+    case TransferHeader::DevelopmentFiles:
+        dir.setPath(directory);
+        break;
+    case TransferHeader::FirmwareUpdate:
+        dir.setPath(directory + '/' + "Firmware");
+        break;
+    case TransferHeader::SoftwareUpdate:
+        dir.setPath(directory + '/' + "Software");
+        break;
+    case TransferHeader::MediaUpdate:
+        dir.setPath(directory + '/' + "Media");
+        break;
+    case TransferHeader::RecommendationUpdate:
+        dir.setPath(directory + '/' + "Recommendations");
+        break;
+    case TransferHeader::SettingsUpdate:
+        dir.setPath(directory + '/' + "Settings");
+        break;
+    default:
+        break;
+    }
 
+    if (dir.exists()) {
+        fileList = dir.entryList(QDir::Files | QDir::NoDotAndDotDot | QDir::Readable, QDir::Time);
+        socket->sendFileList(fileList);
+    }
 }
 
 QString UpdateThread::getDirectory() const

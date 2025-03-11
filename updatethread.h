@@ -5,7 +5,6 @@
 #include <QThread>
 #include <QSharedPointer>
 
-// #include "package.h"
 #include "updatesocket.h"
 
 
@@ -32,7 +31,7 @@ public slots:
     // void clientDisconnectSlot();
     // void getFileListSlot(QString filelist);
     void sendFileSlot(QString filename);
-    void sendFileList();
+    void sendFileList(int fileType);
 private:
     QSharedPointer<UpdateSocket> socket;
     int clientID;
