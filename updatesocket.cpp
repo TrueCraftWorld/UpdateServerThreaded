@@ -67,7 +67,9 @@ void UpdateSocket::sendFile(const QString& path)
 
 }
 
-void UpdateSocket::sendMessageOnly(const QString &message, qint64 command, TransferHeader::FileType fileType)
+void UpdateSocket::sendMessageOnly(const QString &message,
+                                   qint64 command,
+                                   TransferHeader::FileType fileType)
 {
     clearOutput();
     outputHeader.messageSize = 0;
@@ -109,9 +111,11 @@ void UpdateSocket::sendFileList(QStringList list)
     sendMessageOnly(list.join('%'), _TRANSFER_LIST_);
 }
 
-void UpdateSocket::requestFile(const QString &name)
+void UpdateSocket::requestFile(const QString &name,
+                               TransferHeader::FileType fileType)
 {
-    sendMessageOnly(name, _SELECT_FILE_);
+    // outputHeader.fileType = fileType;
+    sendMessageOnly(name, _SELECT_FILE_, fileType);
 }
 
 void UpdateSocket::sendFilePart()

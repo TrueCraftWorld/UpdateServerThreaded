@@ -9,6 +9,12 @@ constexpr qint64 magicNum = 0x004AFFB2009CFF31;
 constexpr int headerFieldCount = 5;
 constexpr int headerSizeBytes = headerFieldCount * sizeof(qint64);
 
+const QStringList names = {"Рарзработка"
+                           , "Обновление микропрограмм"
+                           , "Обновление ПО"
+                           , "Обновление медиафайлов"
+                           , "Обновление конфигурации"
+                           , "Обновление рекомендаций"};
 
 struct TransferHeader {
 
@@ -26,6 +32,9 @@ struct TransferHeader {
         SettingsUpdate,  /**< файлы настроек и конфигов */
         RecommendationUpdate /**< файлы установок встроенных программ, будь то архив с конфигами ил файлы базы данных */
     };
+    static QStringList fileTypes() {
+        return names;
+    }
     qint64 magic; ///идентификатор нашего протокола
     qint64 command; //тип сообщения
     qint64 messageSize; //размер сообщения

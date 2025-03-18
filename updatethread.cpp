@@ -13,14 +13,14 @@ UpdateThread::UpdateThread(int socketDes, int ID, QObject *parent)
 
 void UpdateThread::run()
 {
-   socket.reset( new UpdateSocket(clientID,0));
+   socket.reset( new UpdateSocket(clientID,this));
 
     if(!socket->setSocketDescriptor(socketDescriptor))
         return;
 
-    // QObject::connect(socket,&UpdateSocket::disconnected,this,&UpdateThread::closeClientConnectSlot);
-    // QObject::connect(this,&UpdateThread::sendFileSignal,socket,&UpdateSocket::sendFile);
-    // QObject::connect(this,&UpdateThread::clientDisconnectSignal,socket,&UpdateSocket::clientDisconnectSlot);
+    // connect(socket,&UpdateSocket::disconnected,this,&UpdateThread::closeClientConnectSlot);
+    // connect(this,&UpdateThread::sendFileSignal,socket,&UpdateSocket::sendFile);
+    // connect(this,&UpdateThread::clientDisconnectSignal,socket,&UpdateSocket::clientDisconnectSlot);
     connect(socket.data(), &UpdateSocket::fileRequested, this, &UpdateThread::sendFileSlot);
     connect(socket.data(), &UpdateSocket::listRequested, this, &UpdateThread::sendFileList);
 
@@ -76,6 +76,7 @@ void UpdateThread::sendFileList( int fileType)
     }
 
     if (dir.exists()) {
+        directory = dir.absolutePath();
         fileList = dir.entryList(QDir::Files | QDir::NoDotAndDotDot | QDir::Readable, QDir::Time);
         socket->sendFileList(fileList);
     }

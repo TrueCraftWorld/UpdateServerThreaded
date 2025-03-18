@@ -17,7 +17,8 @@ public:
 
     void requestFileList(TransferHeader::FileType fileType);
     void sendFileList(QStringList list);
-    void requestFile(const QString& name);
+    void requestFile(const QString& name,
+                     TransferHeader::FileType fileType = TransferHeader::DevelopmentFiles);
     void sendFile(const QString &path);
 
 signals:
