@@ -27,9 +27,8 @@ void UpdateServer::incomingConnection(qintptr socketDescriptor)
 
     socketNum++; //kinda incremantal ID
 
-    UpdateThread *thread = new UpdateThread(socketDescriptor,socketNum,nullptr);
+    UpdateThread *thread = new UpdateThread(socketDescriptor,socketNum,this);
     threadList.append(thread);
-    // thread->setFileList(updateFiles);
     thread->setDirectory(m_dir);
     thread->start();
 }

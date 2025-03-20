@@ -41,7 +41,7 @@ private slots:
 
     void recieveFile(const QString &fileName);
 
-    void sendFilePart();
+    void sendFilePart(int lasrSendSize);
 
     void readMessage();
     void recieveFile();
@@ -55,6 +55,9 @@ private:
     TransferHeader outputHeader;
     TransferHeader inputHeader;
     int socketID;
+
+    int m_toNextPart = 0;
+
 
     QTimer m_updateTimer;
 };

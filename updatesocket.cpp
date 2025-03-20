@@ -7,6 +7,7 @@ UpdateSocket::UpdateSocket(int ID, QObject *parent)
 {
     clearInput();
     clearOutput();
+    setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 10*payloadSize);
     connect(this,&UpdateSocket::readyRead,this,&UpdateSocket::readMessage);
 }
 
@@ -61,9 +62,13 @@ void UpdateSocket::sendFile(const QString& path)
               << outputHeader.fileSize
               << outputHeader.fileType;
 
-    connect(this, &UpdateSocket::bytesWritten, this, &UpdateSocket::sendFilePart);
-    write(outputHeader.dataBlock.constData(), outputHeader.bytesToReadOrWrite);
-    waitForBytesWritten();
+    connect(this, &QTcpSocket::bytesWritten, this, &UpdateSocket::sendFilePart, Qt::UniqueConnection);
+    m_toNextPart = outputHeader.bytesToReadOrWrite;
+    int written = write(outputHeader.dataBlock.constData(), outputHeader.bytesToReadOrWrite);
+    if (written == -1)
+        qDebug() << "Fuck!" << errorString();
+    if (!waitForBytesWritten())
+        qDebug() << "FuckSendsStart!" << errorString();
 
 }
 
@@ -118,14 +123,26 @@ void UpdateSocket::requestFile(const QString &name,
     sendMessageOnly(name, _SELECT_FILE_, fileType);
 }
 
-void UpdateSocket::sendFilePart()
+void UpdateSocket::sendFilePart(int lasrSendSize)
 {
+    m_toNextPart -= lasrSendSize;
+    if (m_toNextPart)
+        return;
     outputHeader.dataBlock.clear();
     outputHeader.dataBlock.resize(payloadSize);
 
     if(!outputFile.localFile->atEnd()){
         qint64 in = outputFile.localFile->read(outputHeader.dataBlock.data(), payloadSize);
-        write(outputHeader.dataBlock.constData(), in);
+        m_toNextPart = in;
+         // connect(this, &QTcpSocket::bytesWritten, this, &UpdateSocket::sendFilePart, Qt::UniqueConnection);
+        int written = write(outputHeader.dataBlock.constData(), in);
+        if (written == -1)
+            qDebug() << "FuckFile!" << errorString();
+
+        // if (!waitForBytesWritten())
+            // qDebug() << "FuckSends!" << errorString();
+
+        qDebug() << "suk";
 
     } else {
         outputFile.localFile->close();
@@ -189,6 +206,7 @@ void UpdateSocket::readMessage()
         emit fileRequested(inputHeader.message);
         clearInput();
     }
+    break;
     case _REQUEST_LIST_:
     {
         emit listRequested(inputHeader.fileType);
@@ -285,7 +303,7 @@ void UpdateSocket::clearInput()
     inputHeader.fileSize = 0;
     inputHeader.message.clear();
     inputHeader.messageSize = 0;
-
+    // disconnect(this, &UpdateSocket::bytesWritten, this, &UpdateSocket::sendFilePart);
     inputFile.localFile.reset(nullptr);
     inputFile.awaitedSize = 0;
     inputFile.bytesRecived = 0;

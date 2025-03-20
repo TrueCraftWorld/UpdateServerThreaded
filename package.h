@@ -4,7 +4,7 @@
 #include <QSharedPointer>
 #include <QFile>
 
-constexpr int payloadSize = 1024*64;
+constexpr int payloadSize = 1024*1024*4;
 constexpr qint64 magicNum = 0x004AFFB2009CFF31;
 constexpr int headerFieldCount = 5;
 constexpr int headerSizeBytes = headerFieldCount * sizeof(qint64);
@@ -54,6 +54,7 @@ struct FileInfo
 {
     qint64 bytesRecived;
     qint64 awaitedSize;
+    // qint
     QSharedPointer<QFile> localFile;
 };
 

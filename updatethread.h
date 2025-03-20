@@ -13,7 +13,7 @@ class UpdateThread : public QThread
 {
     Q_OBJECT
 public:
-    explicit UpdateThread(int socketDes,int ID,QObject *parent = nullptr);
+    explicit UpdateThread(int socketDes,int ID,QObject *parent);
     void setFileList(const QStringList &newFileList);
 
     QString getDirectory() const;
@@ -33,12 +33,14 @@ public slots:
     void sendFileSlot(QString filename);
     void sendFileList(int fileType);
 private:
-    QSharedPointer<UpdateSocket> socket;
-    int clientID;
+    // QSharedPointer<UpdateSocket> socket;
+    UpdateSocket socket;
+    // int clientID;
     quintptr socketDescriptor;
 
 private:
     // TransferData data;
+    QString baseDirectory;
     QString directory;
     QStringList fileList;
 };
