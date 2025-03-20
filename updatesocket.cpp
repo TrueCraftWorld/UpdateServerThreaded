@@ -66,9 +66,9 @@ void UpdateSocket::sendFile(const QString& path)
     m_toNextPart = outputHeader.bytesToReadOrWrite;
     int written = write(outputHeader.dataBlock.constData(), outputHeader.bytesToReadOrWrite);
     if (written == -1)
-        qDebug() << "Fuck!" << errorString();
+        qDebug() << "oi!" << errorString();
     if (!waitForBytesWritten())
-        qDebug() << "FuckSendsStart!" << errorString();
+        qDebug() << "oiOnStart!" << errorString();
 
 }
 
@@ -134,15 +134,9 @@ void UpdateSocket::sendFilePart(int lasrSendSize)
     if(!outputFile.localFile->atEnd()){
         qint64 in = outputFile.localFile->read(outputHeader.dataBlock.data(), payloadSize);
         m_toNextPart = in;
-         // connect(this, &QTcpSocket::bytesWritten, this, &UpdateSocket::sendFilePart, Qt::UniqueConnection);
         int written = write(outputHeader.dataBlock.constData(), in);
         if (written == -1)
-            qDebug() << "FuckFile!" << errorString();
-
-        // if (!waitForBytesWritten())
-            // qDebug() << "FuckSends!" << errorString();
-
-        qDebug() << "suk";
+            qDebug() << "OiOnFile!" << errorString();
 
     } else {
         outputFile.localFile->close();
