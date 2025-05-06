@@ -3,7 +3,8 @@
 #include <QHostAddress>
 
 UpdateControl::UpdateControl(QObject *parent)
-    : QObject{parent}
+    : QObject{parent},
+    server(this)
 {
 
 }

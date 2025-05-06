@@ -11,12 +11,15 @@ SOURCES += \
         updatecontrol.cpp \
         updateserver.cpp \
         updatesocket.cpp \
-        updatethread.cpp
+        updateworker.cpp
 
 # Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+# qnx: target.path = /tmp/$${TARGET}/bin
+# else: unix:!android: target.path = /opt/$${TARGET}/bin
+# !isEmpty(target.path): INSTALLS += target
+
+target.path = /usr/share/qtpr
+INSTALLS += target
 
 HEADERS += \
     config.h \
@@ -25,7 +28,7 @@ HEADERS += \
     updatecontrol.h \
     updateserver.h \
     updatesocket.h \
-    updatethread.h
+    updateworker.h
 
 
 # target.path = /usr/share/qtpr

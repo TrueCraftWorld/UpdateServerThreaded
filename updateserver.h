@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QTcpServer>
 
-#include <updatethread.h>
+#include <updateworker.h>
 
 class UpdateServer : public QTcpServer
 {
@@ -16,8 +16,9 @@ public:
     void setDirectory(const QString& dir);
 
     QList<int > socketList;
-    QList<UpdateThread *>threadList;
-    QList<QString> socketIP;
+    // QList<UpdateThread *>threadList;
+    QList<QThread *>theThreadList;
+    // QList<QString> socketIP;
     int socketNum;
 
 protected:

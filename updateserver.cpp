@@ -1,5 +1,6 @@
 #include "updateserver.h"
 #include <QDir>
+#include <QThread>
 
 UpdateServer::UpdateServer(QObject *parent)
     : QTcpServer{parent}
@@ -14,10 +15,6 @@ void UpdateServer::setDirectory(const QString &dir)
 {
     m_dir = dir;
     QDir directory(m_dir);
-    // updateFiles.clear();
-
-    // updateFiles = directory.entryList(QDir::Files | QDir::NoDotAndDotDot | QDir::Readable, QDir::Time);
-
 }
 
 void UpdateServer::incomingConnection(qintptr socketDescriptor)
@@ -27,10 +24,12 @@ void UpdateServer::incomingConnection(qintptr socketDescriptor)
 
     socketNum++; //kinda incremantal ID
 
-    UpdateThread *thread = new UpdateThread(socketDescriptor,socketNum,this);
-    threadList.append(thread);
+    UpdateWorker *thread = new UpdateWorker(socketDescriptor,socketNum,nullptr);
+    QThread* theThread = new QThread(nullptr);
+    theThreadList.append(theThread);
     thread->setDirectory(m_dir);
-    thread->start();
+    thread->moveToThread(theThread);
+    theThread->start();
 }
 
 void UpdateServer::clientDisconnectSlot(int ID)
