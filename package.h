@@ -54,6 +54,7 @@ struct FileInfo
 {
     qint64 bytesRecived;
     qint64 awaitedSize;
+    QString fileCheckSum;
     // qint
     QSharedPointer<QFile> localFile;
 };

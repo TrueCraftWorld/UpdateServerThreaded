@@ -11,5 +11,6 @@ constexpr qint64  _REQUEST_LIST_       =    0x0F05;
 constexpr qint64  _I_AM_ALIVE_         =    0x0F06;
 constexpr qint64  _CLOSE_CONNECTION    =    0x0F07;
 constexpr qint64  _REQUEST_ACK_        =    0x0F08;
+constexpr qint64  _FILE_CHECK_         =    0x0F09;
 
 #endif // PROTOCOLCOMMAND_H

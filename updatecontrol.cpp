@@ -18,5 +18,7 @@ void UpdateControl::setDirectory(const QString &dir)
 
 void UpdateControl::start()
 {
-    server.listen(QHostAddress::Any, 11111);
+    // server.listen(QHostAddress::Any, 11111);
+
+    server.listen(QHostAddress::LocalHost, 11111);
 }

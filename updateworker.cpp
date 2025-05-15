@@ -18,8 +18,8 @@ UpdateWorker::UpdateWorker(int socketDes, int ID, QObject */*parent*/)
     // connect(socket,&UpdateSocket::disconnected,this,&UpdateThread::closeClientConnectSlot);
     // connect(this,&UpdateThread::sendFileSignal,socket,&UpdateSocket::sendFile);
     // connect(this,&UpdateThread::clientDisconnectSignal,socket,&UpdateSocket::clientDisconnectSlot);
-    connect(&socket, &UpdateSocket::fileRequested, this, &UpdateWorker::sendFileSlot);
-    connect(&socket, &UpdateSocket::listRequested, this, &UpdateWorker::sendFileList);
+    connect(&socket, &UpdateSocket::signalFileRequested, this, &UpdateWorker::sendFileSlot);
+    connect(&socket, &UpdateSocket::signalListRequested, this, &UpdateWorker::sendFileList);
 }
 
 

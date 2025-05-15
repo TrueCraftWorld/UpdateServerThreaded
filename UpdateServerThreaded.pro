@@ -4,9 +4,11 @@ CONFIG += c++17 cmdline
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+# DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
+# disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        FileChecker.cpp \
         main.cpp \
         updatecontrol.cpp \
         updateserver.cpp \
@@ -22,9 +24,11 @@ target.path = /usr/share/qtpr
 INSTALLS += target
 
 HEADERS += \
+    FileChecker.h \
     config.h \
     package.h \
     protocolcommand.h \
+    updateConfig.h \
     updatecontrol.h \
     updateserver.h \
     updatesocket.h \

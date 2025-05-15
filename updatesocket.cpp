@@ -1,5 +1,6 @@
 #include "updatesocket.h"
 #include "protocolcommand.h"
+#include "FileChecker.h"
 #include <QDir>
 
 UpdateSocket::UpdateSocket(int ID, QObject *parent)
@@ -23,6 +24,7 @@ void UpdateSocket::requestFileList(TransferHeader::FileType fileType)
 
 void UpdateSocket::sendFile(const QString& path)
 {
+    sendFileCheck(path);
     clearOutput();
     outputHeader.messageSize = 0;
     outputHeader.fileSize = 0;
@@ -31,7 +33,7 @@ void UpdateSocket::sendFile(const QString& path)
     outputHeader.bytesReadOrWritten = 0;
     outputFile.localFile.reset(new QFile(path));
 
-    if(!outputFile.localFile->open(QFile::ReadOnly))
+    if (!outputFile.localFile->open(QFile::ReadOnly))
     {
         outputFile.localFile.reset(nullptr);
         return;
@@ -62,14 +64,9 @@ void UpdateSocket::sendFile(const QString& path)
               << outputHeader.fileSize
               << outputHeader.fileType;
 
-    connect(this, &QTcpSocket::bytesWritten, this, &UpdateSocket::sendFilePart, Qt::UniqueConnection);
-    m_toNextPart = outputHeader.bytesToReadOrWrite;
-    int written = write(outputHeader.dataBlock.constData(), outputHeader.bytesToReadOrWrite);
-    if (written == -1)
-        qDebug() << "oi!" << errorString();
-    if (!waitForBytesWritten())
-        qDebug() << "oiOnStart!" << errorString();
-
+    connect(this, &UpdateSocket::bytesWritten, this, &UpdateSocket::sendFilePart);
+    write(outputHeader.dataBlock.constData(), outputHeader.bytesToReadOrWrite);
+    waitForBytesWritten();
 }
 
 void UpdateSocket::sendMessageOnly(const QString &message,
@@ -131,7 +128,7 @@ void UpdateSocket::sendFilePart(int lasrSendSize)
     outputHeader.dataBlock.clear();
     outputHeader.dataBlock.resize(payloadSize);
 
-    if(!outputFile.localFile->atEnd()){
+    if (!outputFile.localFile->atEnd()) {
         qint64 in = outputFile.localFile->read(outputHeader.dataBlock.data(), payloadSize);
         m_toNextPart = in;
         int written = write(outputHeader.dataBlock.constData(), in);
@@ -149,14 +146,14 @@ void UpdateSocket::sendFilePart(int lasrSendSize)
 
 void UpdateSocket::readMessage()
 {
-    if(bytesAvailable() <= 0) {
+    if (bytesAvailable() <= 0) {
         return;
     }
 
     QDataStream inStream(this);
     inStream.setVersion(QDataStream::Qt_5_15);
 
-    if(bytesAvailable() >= headerSizeBytes
+    if (bytesAvailable() >= headerSizeBytes
         && (inputHeader.command == 0)) {
 
         inStream >> inputHeader.magic
@@ -167,11 +164,12 @@ void UpdateSocket::readMessage()
 
         inputHeader.bytesReadOrWritten += headerSizeBytes;
     }
+
     inputHeader.bytesToReadOrWrite = inputHeader.messageSize
                                      + inputHeader.fileSize
                                      + headerSizeBytes;
 
-    if(bytesAvailable() >= inputHeader.messageSize
+    if (bytesAvailable() >= inputHeader.messageSize
         && inputHeader.message.isEmpty()) {
         inStream >> inputHeader.message;
         inputHeader.bytesReadOrWritten += inputHeader.messageSize;
@@ -179,7 +177,7 @@ void UpdateSocket::readMessage()
     //тут мы закончили читать хэдер
 
 
-    switch(inputHeader.command)
+    switch (inputHeader.command)
     {
     case _TRANSFER_FILE_ :
     {
@@ -191,20 +189,24 @@ void UpdateSocket::readMessage()
     break;
     case _TRANSFER_LIST_ :
     {
-        emit listRecieved(inputHeader.message.split('%'));
+        emit signalListRecieved(inputHeader.message.split('%'));
         clearInput();
     }
     break;
     case _SELECT_FILE_:
     {
-        emit fileRequested(inputHeader.message);
+        emit signalFileRequested(inputHeader.message);
         clearInput();
     }
     break;
     case _REQUEST_LIST_:
     {
-        emit listRequested(inputHeader.fileType);
+        emit signalListRequested(inputHeader.fileType);
         clearInput();
+    }
+    case _FILE_CHECK_:
+    {
+        prepareFileInfo(inputHeader.message);
     }
     break;
     default:
@@ -213,12 +215,13 @@ void UpdateSocket::readMessage()
     }
 }
 
-
-
-void UpdateSocket::recieveFile(const QString& fileName) {
+void UpdateSocket::recieveFile(const QString& fileName,
+                               const QString& destPath) {
 
     if (inputFile.localFile.isNull()) {
-        QString savePath = "/home/kikorik/garbage/";
+        QString savePath = destPath;
+        if (savePath.rightRef(1) != "/")
+            savePath += "/";
 
         QDir dir;
 
@@ -228,12 +231,8 @@ void UpdateSocket::recieveFile(const QString& fileName) {
         inputFile.localFile->open(QIODevice::WriteOnly);
         inputFile.bytesRecived = 0;
     }
-
     recieveFile();
-
 }
-
-
 
 void UpdateSocket::recieveFile() {
 
@@ -246,6 +245,8 @@ void UpdateSocket::recieveFile() {
         inputFile.bytesRecived += inputHeader.dataBlock.size();
 
         inputHeader.dataBlock.clear();
+
+        emit signalFilePartRecieved((100.0 * inputFile.bytesRecived)/(100.0 * inputFile.awaitedSize));
     }
 
     while(!in.atEnd()){
@@ -256,18 +257,31 @@ void UpdateSocket::recieveFile() {
 
         inputFile.localFile->write(inputHeader.dataBlock.constData(), toFile);
         inputHeader.dataBlock.clear();
+        emit signalFilePartRecieved((100.0 * inputFile.bytesRecived)/(100.0 * inputFile.awaitedSize));
     }
 
     if(inputFile.bytesRecived == inputFile.awaitedSize){
 
+        inputFile.localFile->flush();
         inputFile.localFile->close();
         inputFile.localFile.reset(nullptr);
 
         inputFile.bytesRecived = 0;
 
         inputFile.awaitedSize = 0;
-        emit fileRecieved(inputHeader.message);
-        // clearInput();
+
+        QString tmp = inputFile.fileCheckSum;
+
+        inputFile.fileCheckSum.clear();
+
+        if ((tmp.isEmpty())
+            || (FileChecker::getCheckSum(inputHeader.message)
+                == tmp))
+            emit signalFileRecieved(inputHeader.message, inputHeader.fileType);
+        else
+            emit signalFileRecievedError(inputHeader.message);
+
+        clearInput();
     }
 }
 
@@ -277,7 +291,7 @@ void UpdateSocket::clearOutput()
     outputHeader.bytesToReadOrWrite = 0;
     outputHeader.command = 0;
     outputHeader.dataBlock.clear();
-    // outputHeader.dataBlock.resize(0)
+
     outputHeader.fileSize = 0;
     outputHeader.message.clear();
     outputHeader.messageSize = 0;
@@ -293,12 +307,24 @@ void UpdateSocket::clearInput()
     inputHeader.bytesToReadOrWrite = 0;
     inputHeader.command = 0;
     inputHeader.dataBlock.clear();
-    // outputHeader.dataBlock.resize(0)
+
     inputHeader.fileSize = 0;
     inputHeader.message.clear();
     inputHeader.messageSize = 0;
-    // disconnect(this, &UpdateSocket::bytesWritten, this, &UpdateSocket::sendFilePart);
+
     inputFile.localFile.reset(nullptr);
     inputFile.awaitedSize = 0;
     inputFile.bytesRecived = 0;
+    inputFile.fileCheckSum.clear();
+}
+
+void UpdateSocket::sendFileCheck(const QString &filePath)
+{
+    sendMessageOnly(FileChecker::getCheckSum(filePath), _FILE_CHECK_);
+}
+
+void UpdateSocket::prepareFileInfo(const QString &checkSum)
+{
+    clearInput();
+    inputFile.fileCheckSum = checkSum;
 }
