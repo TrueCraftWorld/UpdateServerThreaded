@@ -59,6 +59,7 @@ private:
      *
      */
     void sendFileCheck(const QString& filePath);
+    void completeSendFile(const QString& path);
 
     FileInfo inputFile;
     FileInfo outputFile;

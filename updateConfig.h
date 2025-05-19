@@ -5,7 +5,7 @@
 // #define UPDATE_SERV_IP "192.168.1.117"
 // #define UPDATE_SERV_IP "127.0.0.1"
 // constexpr char UPDATE_SERV_IP[] ("192.168.1.202");
-// constexpr char UPDATE_SERV_IP[] ("192.168.137.123");
+// constexpr char UPDATE_SERV_IP[] ("192.168.137.54");
 constexpr char UPDATE_SERV_IP[] ("127.0.0.1");
 
 constexpr char BINARIES_PATH[] ("/usr/share/qtpr/"); //продакшон
